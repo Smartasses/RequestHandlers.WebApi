@@ -41,6 +41,7 @@ namespace RequestHandlers.WebApi.CSharp
             var references = new AssemblyReferencesHelper()
                 .AddReferenceForTypes(typeof(object), typeof(ApiController), typeof(RequestHandlerControllerBuilder))
                 .AddReferenceForTypes(GetType())
+                .AddReferenceForTypes((_options?.ControllerAttributeTypes ?? Enumerable.Empty<Type>()).ToArray())
                 .AddReferenceForTypes(definitions.SelectMany(x => new[] { x.Definition.RequestType, x.Definition.ResponseType }).ToArray())
                 .GetReferences();
 
