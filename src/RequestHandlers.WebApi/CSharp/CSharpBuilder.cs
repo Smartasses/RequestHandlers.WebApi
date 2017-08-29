@@ -52,14 +52,14 @@ namespace RequestHandlers.WebApi.CSharp
             var csharpControllers = new List<string>();
             var operationResults = definitions.Select(temp => CreateCSharp(GetClassName(temp.Definition.RequestType), temp)).ToArray();
             var files = new Dictionary<string, string>();
-            files.Add("ProxyController", $@"namespace Proxy
+            files.Add($"{_assemblyName}Controller", $@"namespace {_assemblyName}
 {{{CodeStr.If(!string.IsNullOrEmpty(_options?.RoutePrefix), $@"
     [{GetCorrectFormat(typeof(RoutePrefixAttribute))}(""{_options.RoutePrefix}"")]")}{CodeStr.Foreach(_options?.ControllerAttributeTypes, x => $@"
     [{GetCorrectFormat(x)}]")}
-    public class ProxyController : {GetCorrectFormat(typeof(ApiController))}
+    public class {_assemblyName}Controller : {GetCorrectFormat(typeof(ApiController))}
     {{
         private readonly {GetCorrectFormat(typeof(IWebApiRequestProcessor))} _requestProcessor;
-        public ProxyController({GetCorrectFormat(typeof(IWebApiRequestProcessor))} requestProcessor)
+        public {_assemblyName}Controller({GetCorrectFormat(typeof(IWebApiRequestProcessor))} requestProcessor)
         {{
             _requestProcessor = requestProcessor;
         }}

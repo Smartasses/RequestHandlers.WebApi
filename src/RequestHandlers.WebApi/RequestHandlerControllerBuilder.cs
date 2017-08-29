@@ -40,14 +40,23 @@ namespace RequestHandlers.WebApi
     
     public static class WebApiConfig
     {
-        public static Assembly ConfigureRequestHandlers(this HttpConfiguration config, 
-            IRequestDefinition[] requestHandlerDefinitions, 
+        public static Assembly ConfigureRequestHandlers(this HttpConfiguration config,
+            IRequestDefinition[] requestHandlerDefinitions,
             IControllerAssemblyBuilder controllerAssemblyBuilder = null)
         {
-            var assembly = RequestHandlerControllerBuilder.Build(requestHandlerDefinitions, controllerAssemblyBuilder);
+            return config.ConfigureRequestHandlers("Proxy", requestHandlerDefinitions, controllerAssemblyBuilder);
+        }
+
+        public static Assembly ConfigureRequestHandlers(this HttpConfiguration config,
+            string name,
+            IRequestDefinition[] requestHandlerDefinitions,
+            IControllerAssemblyBuilder controllerAssemblyBuilder = null)
+        {
+            var assembly = RequestHandlerControllerBuilder.Build(name, requestHandlerDefinitions, controllerAssemblyBuilder);
 
             return config.ReplaceServicesSoNewControllersInGeneratedAssembliesCanBeResolved(assembly);
         }
+
         private static Assembly ReplaceServicesSoNewControllersInGeneratedAssembliesCanBeResolved(this HttpConfiguration config, Assembly assembly)
         {
             var assemblyResolver = new DynamicAssemblyResolver(assembly);
@@ -57,6 +66,7 @@ namespace RequestHandlers.WebApi
             return assembly;
         }
     }
+
     public class DynamicAssemblyResolver : DefaultAssembliesResolver
     {
         private readonly Assembly[] _assembliesToLoad;
@@ -73,11 +83,12 @@ namespace RequestHandlers.WebApi
             return result.Distinct().ToArray();
         }
     }
+
     public static class RequestHandlerControllerBuilder
     {
-        public static Assembly Build(IRequestDefinition[] definitions, IControllerAssemblyBuilder controllerAssemblyBuilder = null)
+        public static Assembly Build(string name, IRequestDefinition[] definitions, IControllerAssemblyBuilder controllerAssemblyBuilder = null)
         {
-            controllerAssemblyBuilder = controllerAssemblyBuilder ?? new CSharpBuilder("Proxy");
+            controllerAssemblyBuilder = controllerAssemblyBuilder ?? new CSharpBuilder(name);
             var controllerDefinitions =
                 definitions.SelectMany(x => 
                     x.RequestType.GetTypeInfo()
@@ -89,5 +100,4 @@ namespace RequestHandlers.WebApi
             return controllerAssemblyBuilder.Build(controllerDefinitions);
         }
     }
-
 }
