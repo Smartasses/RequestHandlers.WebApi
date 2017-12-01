@@ -140,13 +140,17 @@ namespace RequestHandlers.WebApi.CSharp
             var requestClass = builderDefinition.Definition.RequestType.Name + "_" + Guid.NewGuid().ToString().Replace("-", "");
 
 
-            var methodArgs = string.Join(",  ", builderDefinition.Parameters.GroupBy(x => x.PropertyName).Select(x => new
-            {
-                Name = x.Key,
-                Type = x.First().BindingType == BindingType.FromBody || x.First().BindingType == BindingType.FromForm ? requestClass : GetCorrectFormat(x.First().PropertyInfo.PropertyType),
-                Binder = x.First().BindingType == BindingType.FromBody ? "FromBody" : "FromUri",
-                BindingType = x.First().BindingType
-            }).Select(x => $"[System.Web.Http.{x.Binder}Attribute] {x.Type} {x.Name}{CodeStr.If(x.BindingType == BindingType.FromQuery, $" = default({x.Type})")}"));
+            var methodArgs = string.Join(",  ", builderDefinition.Parameters.GroupBy(x => x.PropertyName)
+                .Select(x => new
+                {
+                    Name = x.Key,
+                    Type = x.First().BindingType == BindingType.FromBody || x.First().BindingType == BindingType.FromForm ? requestClass : GetCorrectFormat(x.First().PropertyInfo.PropertyType),
+                    Binder = x.First().BindingType == BindingType.FromBody ? "FromBody" : "FromUri",
+                    BindingType = x.First().BindingType
+                })
+                .OrderBy(x => x.BindingType == BindingType.FromQuery ? 1 : 0)
+                .Select(x => $"[System.Web.Http.{x.Binder}Attribute] {x.Type} {x.Name}{CodeStr.If(x.BindingType == BindingType.FromQuery, $" = default({x.Type})")}"));
+
             var isAsync = builderDefinition.Definition.ResponseType.IsConstructedGenericType &&
                           builderDefinition.Definition.ResponseType.GetGenericTypeDefinition() == typeof(Task<>);
             var responseType = isAsync 
